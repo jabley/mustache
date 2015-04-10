@@ -101,6 +101,12 @@ So if you write the following:
 
 It'll be blank. You either have to use `&Person{"John", "Smith"}`, or call `Name2`
 
+## A note about partials
+
+`mustache.RenderFile("/tmp/a.mustache", data)` find partials at `dirname(path)`, in this example, it is `/tmp`
+
+`mustache.Render("{{> a.mustache}}" data))` find partails at current directory.
+
 ## Supported features
 
 * Variables
