@@ -12,6 +12,7 @@ import (
 	"strings"
 )
 
+var Dir = ""
 const defaultOtag = "{{"
 const defaultCtag = "}}"
 
@@ -699,8 +700,10 @@ func ParseString(data string) (*Template, error) {
 }
 
 func parseString(data string, otag string, ctag string, environment environment) (*Template, error) {
-	cwd := os.Getenv("CWD")
-	tmpl := Template{data, otag, ctag, 0, 1, cwd, []interface{}{}, environment}
+	if Dir == "" {
+		Dir = os.Getenv("CWD")
+	}
+	tmpl := Template{data, otag, ctag, 0, 1, Dir, []interface{}{}, environment}
 	err := tmpl.parse()
 
 	if err != nil {

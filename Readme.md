@@ -101,6 +101,13 @@ So if you write the following:
 
 It'll be blank. You either have to use `&Person{"John", "Smith"}`, or call `Name2`
 
+## Configure partial directory
+
+    mustache.Dir = "/tmp"
+    mustache.Render("{{> a.mustache}}", map[string]interface{}{})
+
+It will load `/tmp/a.mustache`
+
 ## Supported features
 
 * Variables
