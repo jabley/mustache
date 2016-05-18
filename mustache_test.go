@@ -20,7 +20,7 @@ type Data struct {
 
 type User struct {
 	Name string
-	Id   int64
+	ID   int64
 }
 
 type settings struct {
