@@ -43,6 +43,7 @@ type sectionElement struct {
 	ctag      string
 }
 
+// Template is the Go representation of the parsed mustache template. Use this if you're planning on rendering the same mustache template multiple times.
 type Template struct {
 	data        string
 	otag        string
@@ -62,11 +63,11 @@ type parseError struct {
 func (p parseError) Error() string { return fmt.Sprintf("line %d: %s", p.line, p.message) }
 
 var (
-	esc_quot = []byte("&quot;")
-	esc_apos = []byte("&apos;")
-	esc_amp  = []byte("&amp;")
-	esc_lt   = []byte("&lt;")
-	esc_gt   = []byte("&gt;")
+	escQuot = []byte("&quot;")
+	escApos = []byte("&apos;")
+	escAmp  = []byte("&amp;")
+	escLt   = []byte("&lt;")
+	escGt   = []byte("&gt;")
 )
 
 func (s *sectionElement) writeRawBody(body string) {
@@ -106,9 +107,8 @@ func (tmpl *Template) readString(s string) (string, error) {
 
 			tmpl.curline += newlines
 			return text, nil
-		} else {
-			i++
 		}
+		i++
 	}
 
 	//should never be here
@@ -253,10 +253,9 @@ func (tmpl *Template) parseSection(section *sectionElement) error {
 			name := strings.TrimSpace(tag[1:])
 			if name != section.name {
 				return parseError{tmpl.curline, "interleaved closing tag: " + name}
-			} else {
-				handleStandaloneLine(section.elems, tmpl, potentialStandalone)
-				return nil
 			}
+			handleStandaloneLine(section.elems, tmpl, potentialStandalone)
+			return nil
 		case '>':
 			name := strings.TrimSpace(tag[1:])
 
@@ -301,8 +300,6 @@ func (tmpl *Template) parseSection(section *sectionElement) error {
 			section.elems = append(section.elems, &varElement{tag, false})
 		}
 	}
-
-	return nil
 }
 
 func (tmpl *Template) isBeginningOfLine() bool {
@@ -396,8 +393,6 @@ func (tmpl *Template) parse() error {
 			tmpl.elems = append(tmpl.elems, &varElement{tag, false})
 		}
 	}
-
-	return nil
 }
 
 func handleStandaloneLine(elems []interface{}, tmpl *Template, potentialStandalone bool) string {
@@ -524,16 +519,14 @@ Outer:
 				ret := av.FieldByName(name)
 				if ret.IsValid() {
 					return ret
-				} else {
-					continue Outer
 				}
+				continue Outer
 			case reflect.Map:
 				ret := av.MapIndex(reflect.ValueOf(name))
 				if ret.IsValid() {
 					return ret
-				} else {
-					continue Outer
 				}
+				continue Outer
 			default:
 				continue Outer
 			}
@@ -675,6 +668,7 @@ func (tmpl *Template) renderTemplate(contextChain []interface{}, buf io.Writer) 
 	}
 }
 
+// Render renders a Template using the provided context.
 func (tmpl *Template) Render(context ...interface{}) string {
 	var buf bytes.Buffer
 	var contextChain []interface{}
@@ -686,6 +680,7 @@ func (tmpl *Template) Render(context ...interface{}) string {
 	return buf.String()
 }
 
+// RenderInLayout renders this nested Template within the provided layout Template, using the provided context.
 func (tmpl *Template) RenderInLayout(layout *Template, context ...interface{}) string {
 	content := tmpl.Render(context...)
 	allContext := make([]interface{}, len(context)+1)
@@ -694,6 +689,7 @@ func (tmpl *Template) RenderInLayout(layout *Template, context ...interface{}) s
 	return layout.Render(allContext...)
 }
 
+// ParseString attemts to parse the provided mustache template string.
 func ParseString(data string) (*Template, error) {
 	return parseString(data, defaultOtag, defaultCtag, newEnvironment())
 }
@@ -710,6 +706,7 @@ func parseString(data string, otag string, ctag string, environment environment)
 	return &tmpl, err
 }
 
+// ParseFile attempts to parse the provided file as a mustache template.
 func ParseFile(filename string) (*Template, error) {
 	return parseFile(filename, "", newEnvironment())
 }
@@ -743,11 +740,11 @@ func evaluate(data string, otag string, ctag string, contextChain []interface{})
 		var buf bytes.Buffer
 		tmpl.renderTemplate(contextChain, &buf)
 		return buf.String()
-	} else {
-		return data
 	}
+	return data
 }
 
+// Render parses the provided mustache template, and renders it using the context. It returns the rendered content, or an error string.
 func Render(data string, context ...interface{}) string {
 	tmpl, err := ParseString(data)
 	if err != nil {
@@ -756,6 +753,7 @@ func Render(data string, context ...interface{}) string {
 	return tmpl.Render(context...)
 }
 
+// RenderInLayout parses the 2 provided mustache templates, and renders it using the context. It returns the rendered content, or an error string.
 func RenderInLayout(data string, layoutData string, context ...interface{}) string {
 	layoutTmpl, err := ParseString(layoutData)
 	if err != nil {
@@ -768,6 +766,7 @@ func RenderInLayout(data string, layoutData string, context ...interface{}) stri
 	return tmpl.RenderInLayout(layoutTmpl, context...)
 }
 
+// RenderFile parses the provided file as a mustache template, and renders it using the context. It returns the rendered content, or an error string.
 func RenderFile(filename string, context ...interface{}) string {
 	tmpl, err := ParseFile(filename)
 	if err != nil {
@@ -776,6 +775,7 @@ func RenderFile(filename string, context ...interface{}) string {
 	return tmpl.Render(context...)
 }
 
+// RenderFileInLayout parses the 2 provided files as mustache templates, and renders it using the context. It returns the rendered content, or an error string.
 func RenderFileInLayout(filename string, layoutFile string, context ...interface{}) string {
 	layoutTmpl, err := ParseFile(layoutFile)
 	if err != nil {

@@ -903,9 +903,8 @@ func TestLambdasSection(t *testing.T) {
 	lambda := func(text string) string {
 		if text == "{{x}}" {
 			return "yes"
-		} else {
-			return "no"
 		}
+		return "no"
 	}
 	template := "<{{#lambda}}{{x}}{{/lambda}}>"
 	expected := "<yes>"
